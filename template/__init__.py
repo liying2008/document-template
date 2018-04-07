@@ -1,8 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from template import Template
+from template import DocumentTemplate
 
 __author__ = 'liying'
 
-__all__ = ['Template']
+__all__ = ['DocumentTemplate']

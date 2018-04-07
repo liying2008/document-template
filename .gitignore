@@ -1,3 +1,6 @@
 new_test.html
 .idea/
 *.pyc
+build/
+document_template.egg-info/
+dist/*.egg

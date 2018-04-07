@@ -1,11 +1,12 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 import os
+from collections import Iterable
 
 __author__ = 'liying'
 
 
-class Template:
+class DocumentTemplate(object):
     def __init__(self):
         self.__template_file = None
         self.__identifier_dict = None
@@ -30,11 +31,48 @@ class Template:
         document = ""
         with open(self.__template_file, 'r') as f:
             for line in f:
-                if "#{" in line:
-                    for key, value in self.__identifier_dict.items():
-                        line = line.replace("#{" + key + "}", value)
-                        if "#{" not in line:
-                            break
+                start_pos = line.find("#{")
+                if start_pos >= 0:
+                    if line[start_pos + 2:start_pos + 7] == "bool:":
+                        right_brace_pos = line.find("}", start_pos + 8)
+                        if right_brace_pos > start_pos:
+                            next_start_pos = line.find("#{bool:", start_pos + 8)
+                            if next_start_pos > right_brace_pos:
+                                identifier = line[start_pos + 7:right_brace_pos]
+                                if self.__identifier_dict[identifier]:
+                                    line = line[0:start_pos] + line[right_brace_pos + 1:next_start_pos] + \
+                                           line[next_start_pos + right_brace_pos - start_pos + 1:]
+                                else:
+                                    line = line[0:start_pos] + line[
+                                                               next_start_pos + right_brace_pos - start_pos + 1:]
+                    elif line[start_pos + 2:start_pos + 13] == "copy:start}":
+                        next_start_pos = line.find("#{copy:end}", start_pos + 14)
+                        if next_start_pos > start_pos:
+                            content = line[start_pos + 13:next_start_pos]
+                            content_start_pos = content.find("#{")
+                            if content_start_pos > 0:
+                                content_right_brace_pos = content.find("}", content_start_pos + 3)
+                                if content_right_brace_pos > content_start_pos:
+                                    content_identifier = content[content_start_pos + 2:content_right_brace_pos]
+                                    if isinstance(self.__identifier_dict[content_identifier], basestring):
+                                        line = line[0:start_pos] + content[0:content_start_pos] + \
+                                               self.__identifier_dict[content_identifier] + \
+                                               content[content_right_brace_pos + 1:] + line[next_start_pos + 11:]
+                                    elif isinstance(self.__identifier_dict[content_identifier], Iterable):
+                                        line_satrt = line[0:start_pos]
+                                        line_end = line[next_start_pos + 11:]
+                                        line = line_satrt
+                                        content_start = content[0:content_start_pos]
+                                        content_end = content[content_right_brace_pos + 1:]
+                                        for c in self.__identifier_dict[content_identifier]:
+                                            line += content_start + c + content_end
+                                        line += line_end
+                    else:
+                        end_pos = line.find("}", start_pos + 1)
+                        if end_pos > start_pos:
+                            line = line.replace(line[start_pos:end_pos + 1],
+                                                self.__identifier_dict[line[start_pos + 2:end_pos]])
+
                 document += line
         return document
 
