@@ -5,9 +5,8 @@ document-template
 Python解析文档模版
 =====================
      
-.. image:: https://img.shields.io/pypi/v/document-template.svg   :alt: PyPI
-
-.. image:: https://img.shields.io/pypi/pyversions/document-template.svg   :alt: PyPI - Python Version
+.. image:: https://img.shields.io/pypi/v/document-template.svg
+.. image:: https://img.shields.io/pypi/pyversions/document-template.svg
 
 安装方法
 ---------
