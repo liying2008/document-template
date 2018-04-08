@@ -7,7 +7,7 @@ from setuptools import setup
 
 author = 'liying'
 email = 'liruoer2008@yeah.net'
-version = '0.0.2'
+version = '0.0.3'
 url = 'https://github.com/liying2008/document-template'
 
 setup(
@@ -20,7 +20,7 @@ setup(
         "Programming Language :: Python :: 2.7",
         "Topic :: Utilities",
     ],
-    keywords='Template document',
+    keywords='template document',
     author=author,
     author_email=email,
     url=url,
@@ -31,9 +31,5 @@ setup(
     install_requires=[
         'setuptools',
     ],
-    project_urls={
-        'Source': url,
-        'Tracker': url + '/issues',
-    },
     entry_points={},
 )
