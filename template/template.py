@@ -32,19 +32,19 @@ class DocumentTemplate(object):
         with open(self.__template_file, 'r') as f:
             for line in f:
                 start_pos = line.find("#{")
-                if start_pos >= 0:
+                while start_pos >= 0:
                     if line[start_pos + 2:start_pos + 7] == "bool:":
                         right_brace_pos = line.find("}", start_pos + 8)
                         if right_brace_pos > start_pos:
-                            next_start_pos = line.find("#{bool:", start_pos + 8)
+                            identifier = line[start_pos + 7:right_brace_pos]
+                            next_start_pos = line.find("#{bool:" + identifier + "}", start_pos + 8)
                             if next_start_pos > right_brace_pos:
-                                identifier = line[start_pos + 7:right_brace_pos]
                                 if self.__identifier_dict[identifier]:
                                     line = line[0:start_pos] + line[right_brace_pos + 1:next_start_pos] + \
                                            line[next_start_pos + right_brace_pos - start_pos + 1:]
                                 else:
-                                    line = line[0:start_pos] + line[
-                                                               next_start_pos + right_brace_pos - start_pos + 1:]
+                                    line = line[0:start_pos] + line[next_start_pos + right_brace_pos - start_pos + 1:]
+                        start_pos = line.find("#{")
                     elif line[start_pos + 2:start_pos + 13] == "copy:start}":
                         next_start_pos = line.find("#{copy:end}", start_pos + 14)
                         if next_start_pos > start_pos:
@@ -67,12 +67,13 @@ class DocumentTemplate(object):
                                         for c in self.__identifier_dict[content_identifier]:
                                             line += content_start + c + content_end
                                         line += line_end
+                        start_pos = line.find("#{")
                     else:
                         end_pos = line.find("}", start_pos + 1)
                         if end_pos > start_pos:
-                            line = line.replace(line[start_pos:end_pos + 1],
-                                                self.__identifier_dict[line[start_pos + 2:end_pos]])
-
+                            line = line[0:start_pos] + self.__identifier_dict[line[start_pos + 2:end_pos]] + \
+                                   line[end_pos + 1:]
+                        start_pos = line.find("#{")
                 document += line
         return document
 

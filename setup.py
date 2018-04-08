@@ -7,7 +7,7 @@ from setuptools import setup
 
 author = 'liying'
 email = 'liruoer2008@yeah.net'
-version = '0.0.1'
+version = '0.0.2'
 url = 'https://github.com/liying2008/document-template'
 
 setup(
