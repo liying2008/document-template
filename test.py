@@ -11,6 +11,6 @@ if __name__ == '__main__':
     # id_dict['contents'] = 'Hello World'
     id_dict['contents'] = ('A', 'B', 'C', 'D', 'E', 'F', 'G')
     temp = DocumentTemplate()
-    temp.load("test.html")
+    temp.load("test.html", encoding='utf-8')
     temp.set_identifier_dict(id_dict)
     temp.save_document("new_test.html")
