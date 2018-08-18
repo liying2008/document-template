@@ -11,6 +11,8 @@ class DocumentTemplate(object):
         self.__template_file = None
         self.__identifier_dict = None
         self.__encoding = 'utf-8'
+        # 拷贝换行模式
+        self.linefeed = '\n'
 
     def load(self, template_file, encoding='utf-8'):
         """加载模版文件"""
@@ -93,7 +95,7 @@ class DocumentTemplate(object):
                                 for i in range(length):
                                     for j in range(identifier_count):
                                         line += middle_text[j] + self.__identifier_dict[identifier_list[j]][i]
-                                    line += middle_text[identifier_count]
+                                    line += middle_text[identifier_count] + self.linefeed
 
                         start_pos = line.find("#{")
                     else:

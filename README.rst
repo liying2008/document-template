@@ -51,10 +51,9 @@ Python解析文档模版
     <br>
     为真时显示:#{bool:show_span}<span>显示的内容</span>#{bool:show_span};;分割;;#{bool:show_span}show_span is True#{bool:show_span}
     <br>
-    #{copy:start}多行文字，替换局部内容：#{contents} 和 #{another_contents}<br>#{copy:end}
+    #{copy:start}多行文字，替换局部内容：#{contents} 和 #{another_contents}#{copy:end}
     </body>
     </html>
-
 
 :test.py:
 
@@ -65,13 +64,16 @@ Python解析文档模版
     if __name__ == '__main__':
         id_dict = {"title": "标题", "head": "正文标题", "url": "https://github.com/liying2008", "large_font": "大号字体"}
         id_dict['show_span'] = True
+
+        # Multi-line copy supports string, list and tuple
         # id_dict['contents'] = 'ABCDEFG'
         # id_dict['another_contents'] = '1234567'
         id_dict['contents'] = ('A', 'B', 'C', 'D', 'E', 'F', 'G')
-        id_dict['another_contents'] = ('1', '2', '3', '4', '5', '6', '7')
+        id_dict['another_contents'] = ['1', '2', '3', '4', '5', '6', '7']
         temp = DocumentTemplate()
         temp.load("test.html", encoding='utf-8')
         temp.set_identifier_dict(id_dict)
+        temp.linefeed = '<br>\n'
         temp.save_document("new_test.html")
 
 
@@ -80,6 +82,13 @@ Python解析文档模版
 - 成对出现的 **#{bool:}** 须在同一行；
 - 成对出现的 **#{copy:}** 须在同一行；
 - 不支持 **#{bool:}**、 **#{copy:}** 嵌套使用。
+
+
+更新内容
+---------
+- 支持 Python 3；
+- 支持多行拷贝中有多个 ``#{标识符}``；
+- 支持自定义多行拷贝的换行符。
 
 
 LICENSE
