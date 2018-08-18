@@ -1,5 +1,6 @@
 new_test.html
 .idea/
+.vscode
 *.pyc
 build/
 document_template.egg-info/
