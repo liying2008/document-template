@@ -24,6 +24,24 @@ class DocumentTemplate(object):
         """设置标识符字典"""
         self.__identifier_dict = identifier_dict
 
+    def __fill_list(self, dict_key_list):
+        """取同一行所含 list 中的最大长度，并将长度小的 list 补至最大长度"""
+        key_len = len(dict_key_list)
+        list_max_length = 0
+        for i in range(key_len):
+            length = len(self.__identifier_dict[dict_key_list[i]])
+            if length > list_max_length:
+                list_max_length = length
+
+        for i in range(key_len):
+            a_list = self.__identifier_dict[dict_key_list[i]]
+            short = list_max_length - len(a_list)
+            if short > 0:
+                self.__identifier_dict[dict_key_list[i]] = list(self.__identifier_dict[dict_key_list[i]])
+                for j in range(short):
+                    self.__identifier_dict[dict_key_list[i]].append('')
+        return list_max_length
+
     def get_document(self):
         """获取解析后的文档"""
         if self.__template_file is None:
@@ -71,7 +89,7 @@ class DocumentTemplate(object):
                             identifier_count = len(identifier_list)
                             if identifier_count > 0:
                                 line = ''
-                                length = len(self.__identifier_dict[identifier_list[0]])
+                                length = self.__fill_list(identifier_list)
                                 for i in range(length):
                                     for j in range(identifier_count):
                                         line += middle_text[j] + self.__identifier_dict[identifier_list[j]][i]

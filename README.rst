@@ -60,7 +60,7 @@ Python解析文档模版
 
 .. code-block:: python
 
-    from template import DocumentTemplate
+    from document_template import DocumentTemplate
 
     if __name__ == '__main__':
         id_dict = {"title": "标题", "head": "正文标题", "url": "https://github.com/liying2008", "large_font": "大号字体"}

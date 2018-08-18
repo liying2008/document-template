@@ -7,7 +7,7 @@ from setuptools import setup
 
 author = 'liying'
 email = 'liruoer2008@yeah.net'
-version = '0.0.4'
+version = '0.0.5'
 url = 'https://github.com/liying2008/document-template'
 
 with codecs.open("README.rst", "r", "utf-8") as fh:
