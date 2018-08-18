@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 import codecs
 import os
-from collections import Iterable
 
 __author__ = 'liying'
 
@@ -51,25 +50,33 @@ class DocumentTemplate(object):
                     elif line[start_pos + 2:start_pos + 13] == "copy:start}":
                         next_start_pos = line.find("#{copy:end}", start_pos + 14)
                         if next_start_pos > start_pos:
+                            # 一行中的变量标识符列表
+                            identifier_list = []
+                            # 一行中的正常文字列表
+                            middle_text = []
                             content = line[start_pos + 13:next_start_pos]
                             content_start_pos = content.find("#{")
-                            if content_start_pos > 0:
+                            # 找到所有的变量标识符和正常文字
+                            while content_start_pos > 0:
                                 content_right_brace_pos = content.find("}", content_start_pos + 3)
                                 if content_right_brace_pos > content_start_pos:
                                     content_identifier = content[content_start_pos + 2:content_right_brace_pos]
-                                    if isinstance(self.__identifier_dict[content_identifier], Iterable):
-                                        line_start = line[0:start_pos]
-                                        line_end = line[next_start_pos + 11:]
-                                        line = line_start
-                                        content_start = content[0:content_start_pos]
-                                        content_end = content[content_right_brace_pos + 1:]
-                                        for c in self.__identifier_dict[content_identifier]:
-                                            line += content_start + c + content_end
-                                        line += line_end
-                                    else:
-                                        line = line[0:start_pos] + content[0:content_start_pos] + \
-                                               self.__identifier_dict[content_identifier] + \
-                                               content[content_right_brace_pos + 1:] + line[next_start_pos + 11:]
+                                    identifier_list.append(content_identifier)
+                                    middle_text.append(content[0:content_start_pos])
+                                    content = content[content_right_brace_pos + 1:next_start_pos]
+                                    content_start_pos = content.find("#{")
+
+                            middle_text.append(content)
+
+                            identifier_count = len(identifier_list)
+                            if identifier_count > 0:
+                                line = ''
+                                length = len(self.__identifier_dict[identifier_list[0]])
+                                for i in range(length):
+                                    for j in range(identifier_count):
+                                        line += middle_text[j] + self.__identifier_dict[identifier_list[j]][i]
+                                    line += middle_text[identifier_count]
+
                         start_pos = line.find("#{")
                     else:
                         end_pos = line.find("}", start_pos + 1)
