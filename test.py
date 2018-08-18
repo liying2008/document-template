@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from template import DocumentTemplate
+from document_template import DocumentTemplate
 
 __author__ = 'liying'
 
