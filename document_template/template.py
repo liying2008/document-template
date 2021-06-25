@@ -8,12 +8,24 @@ __author__ = 'liying'
 
 class TemplateError(Exception):
     """Template error."""
-    pass
+
+    def __init__(self, code, message):
+        self.code = code
+        self.message = message
+
+    def __str__(self):
+        return 'error code = ' + str(self.code) + ', ' + self.message
 
 
 class IdentifierError(Exception):
     """Identifier error."""
-    pass
+
+    def __init__(self, code, message):
+        self.code = code
+        self.message = message
+
+    def __str__(self):
+        return 'error code = ' + str(self.code) + ', ' + self.message
 
 
 class DocumentTemplate(object):
@@ -29,7 +41,7 @@ class DocumentTemplate(object):
         :param encoding: specifies the encoding which is to be used for the file.
         """
         if not os.path.isfile(template_file):
-            raise TemplateError("template file does not exist or is not a file.")
+            raise TemplateError(code=1, message="template file does not exist or is not a file.")
 
         with codecs.open(template_file, 'r', encoding=encoding) as f:
             self.__template_content = f.read()
@@ -57,9 +69,9 @@ class DocumentTemplate(object):
         :return: The parsed document.
         """
         if self.__template_content is None:
-            raise TemplateError("template file or template content is not set.")
+            raise TemplateError(code=2, message="template file or template content is not set.")
         if self.__identifier_dict is None:
-            raise IdentifierError("identifier dict is not set.")
+            raise IdentifierError(code=1, message="identifier dict is not set.")
         document = ""
 
         template_content = self.__template_content
@@ -128,24 +140,16 @@ class DocumentTemplate(object):
                             # bool 指令变量
                             var = temp_var[colon_index + 1:]
                             if var == '':
-                                # 变量为空，当做普通字符串，原样输出
-                                if len(bool_flags_stack) == 0:
-                                    # 没有 bool 指令要处理
-                                    document += '#{bool:}'
-                                else:
-                                    # 还有 bool 指令要处理
-                                    last_bool_var = bool_flags_stack[len(bool_flags_stack) - 1]
-                                    bool_flags[last_bool_var]['content'] += '#{bool:}'
-
-                                skip_count = 7
-                                continue
+                                # bool 变量为空，抛出异常
+                                raise TemplateError(code=20, message='bool variable is empty.')
                             else:
                                 if var in bool_flags:
                                     content = bool_flags[var]['content']
                                     del bool_flags[var]
                                     pop_var = bool_flags_stack.pop()
                                     if pop_var != var:
-                                        raise TemplateError('bool directive usage error.')
+                                        # bool 指令嵌套错误
+                                        raise TemplateError(code=21, message='bool directive nesting error.')
                                     if self.__identifier_dict.get(var, False):
                                         # bool 内容显示
                                         if len(bool_flags_stack) != 0:
@@ -187,7 +191,7 @@ class DocumentTemplate(object):
                                 copy_end_index = self.__find_copy_end_index(
                                     template_content[i + 2 + right_bracket_index:])
                                 if copy_end_index == -1:
-                                    raise TemplateError('missing #{copy:end} .')
+                                    raise TemplateError(code=30, message='missing #{copy:end} .')
                                 else:
                                     copy_content = template_content[
                                                    i + 3 + right_bracket_index:i + 2 + right_bracket_index + copy_end_index]
@@ -226,7 +230,8 @@ class DocumentTemplate(object):
                     bool_flags[last_bool_var]['content'] += template_content[i]
 
         if len(bool_flags_stack) > 0:
-            raise TemplateError('bool directive usage error.')
+            # bool 指令未完整配对
+            raise TemplateError(code=22, message='bool directive pairing error.')
 
         return document
 
