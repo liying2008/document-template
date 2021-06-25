@@ -1,5 +1,5 @@
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
+
 import codecs
 import os
 
@@ -7,43 +7,62 @@ __author__ = 'liying'
 
 
 class TemplateError(Exception):
-    """模板错误"""
+    """Template error."""
     pass
 
 
 class IdentifierError(Exception):
-    """标识符错误"""
+    """Identifier error."""
     pass
 
 
 class DocumentTemplate(object):
     def __init__(self):
-        self.__template_file = None
+        self.__template_content = None
         self.__identifier_dict = None
-        self.__encoding = 'utf-8'
 
     def load(self, template_file, encoding='utf-8'):
-        """加载模版文件"""
+        """
+        Read template content from file.
+
+        :param template_file: template file.
+        :param encoding: specifies the encoding which is to be used for the file.
+        """
         if not os.path.isfile(template_file):
-            raise TemplateError("template_file does not exist or is not a file.")
-        else:
-            self.__template_file = template_file
-            self.__encoding = encoding
+            raise TemplateError("template file does not exist or is not a file.")
+
+        with codecs.open(template_file, 'r', encoding=encoding) as f:
+            self.__template_content = f.read()
+
+    def load_template_content(self, template_content):
+        """
+        Load template content.
+
+        :param template_content: template content.
+        """
+        self.__template_content = template_content
 
     def set_identifier_dict(self, identifier_dict):
-        """设置标识符字典"""
+        """
+        Set the identifier dict.
+
+        :param identifier_dict: identifier dict.
+        """
         self.__identifier_dict = identifier_dict
 
     def get_document(self):
-        """获取解析后的文档"""
-        if self.__template_file is None:
-            raise TemplateError("template_file is not set.")
-        if self.__identifier_dict is None:
-            raise IdentifierError("identifier_dict is not set.")
-        document = ""
-        with codecs.open(self.__template_file, 'r', encoding=self.__encoding) as f:
-            template_content = f.read()
+        """
+        Get the parsed document.
 
+        :return: The parsed document.
+        """
+        if self.__template_content is None:
+            raise TemplateError("template file or template content is not set.")
+        if self.__identifier_dict is None:
+            raise IdentifierError("identifier dict is not set.")
+        document = ""
+
+        template_content = self.__template_content
         char_count = len(template_content)
         # print('char_count=' + str(char_count))
 
@@ -126,7 +145,7 @@ class DocumentTemplate(object):
                                     del bool_flags[var]
                                     pop_var = bool_flags_stack.pop()
                                     if pop_var != var:
-                                        raise TemplateError('bool directive usage error')
+                                        raise TemplateError('bool directive usage error.')
                                     if self.__identifier_dict.get(var, False):
                                         # bool 内容显示
                                         if len(bool_flags_stack) != 0:
@@ -207,15 +226,32 @@ class DocumentTemplate(object):
                     bool_flags[last_bool_var]['content'] += template_content[i]
 
         if len(bool_flags_stack) > 0:
-            raise TemplateError('bool directive usage error')
+            raise TemplateError('bool directive usage error.')
 
         return document
 
-    def save_document(self, new_file):
-        """保存到文件"""
+    def save_document(self, new_file, encoding='utf-8'):
+        """
+        Save the parsed document to a file.
+
+        :param new_file: filename.
+        :param encoding: specifies the encoding which is to be used for the file.
+        """
         document = self.get_document()
-        with codecs.open(new_file, 'w', encoding=self.__encoding) as f:
+        with codecs.open(new_file, 'w', encoding=encoding) as f:
             f.write(document)
+
+    def parse(self, template_content, identifier_dict):
+        """
+        Parse the template content and generate the processed content.
+
+        :param template_content: template content.
+        :param identifier_dict: identifier dict.
+        :return: the processed content.
+        """
+        self.__template_content = template_content
+        self.__identifier_dict = identifier_dict
+        return self.get_document()
 
     @staticmethod
     def __get_next_right_bracket(text):
@@ -238,6 +274,7 @@ class DocumentTemplate(object):
         return text.find('#{copy:end}')
 
     def __deal_copy(self, content):
+        """处理 copy 指令"""
         print('deal_content=' + content)
         final_content = ''
         loop_count = 1
