@@ -5,4 +5,4 @@ new_test.html
 build/
 document_template.egg-info/
 dist/*.egg
-venv
+venv*

@@ -6,18 +6,26 @@ import os
 __author__ = 'liying'
 
 
+class TemplateError(Exception):
+    """模板错误"""
+    pass
+
+
+class IdentifierError(Exception):
+    """标识符错误"""
+    pass
+
+
 class DocumentTemplate(object):
     def __init__(self):
         self.__template_file = None
         self.__identifier_dict = None
         self.__encoding = 'utf-8'
-        # 拷贝换行模式
-        self.linefeed = '\n'
 
     def load(self, template_file, encoding='utf-8'):
         """加载模版文件"""
         if not os.path.isfile(template_file):
-            raise ValueError("error! template_file does not exist.")
+            raise TemplateError("template_file does not exist or is not a file.")
         else:
             self.__template_file = template_file
             self.__encoding = encoding
@@ -26,85 +34,181 @@ class DocumentTemplate(object):
         """设置标识符字典"""
         self.__identifier_dict = identifier_dict
 
-    def __fill_list(self, dict_key_list):
-        """取同一行所含 list 中的最大长度，并将长度小的 list 补至最大长度"""
-        key_len = len(dict_key_list)
-        list_max_length = 0
-        for i in range(key_len):
-            length = len(self.__identifier_dict[dict_key_list[i]])
-            if length > list_max_length:
-                list_max_length = length
-
-        for i in range(key_len):
-            a_list = self.__identifier_dict[dict_key_list[i]]
-            short = list_max_length - len(a_list)
-            if short > 0:
-                self.__identifier_dict[dict_key_list[i]] = list(self.__identifier_dict[dict_key_list[i]])
-                for j in range(short):
-                    self.__identifier_dict[dict_key_list[i]].append('')
-        return list_max_length
-
     def get_document(self):
         """获取解析后的文档"""
         if self.__template_file is None:
-            raise ValueError("error! no template_file.")
+            raise TemplateError("template_file is not set.")
         if self.__identifier_dict is None:
-            raise ValueError("error! no identifier_dict")
+            raise IdentifierError("identifier_dict is not set.")
         document = ""
         with codecs.open(self.__template_file, 'r', encoding=self.__encoding) as f:
-            for line in f:
-                start_pos = line.find("#{")
-                while start_pos >= 0:
-                    if line[start_pos + 2:start_pos + 7] == "bool:":
-                        right_brace_pos = line.find("}", start_pos + 8)
-                        if right_brace_pos > start_pos:
-                            identifier = line[start_pos + 7:right_brace_pos]
-                            next_start_pos = line.find("#{bool:" + identifier + "}", start_pos + 8)
-                            if next_start_pos > right_brace_pos:
-                                if self.__identifier_dict[identifier]:
-                                    line = line[0:start_pos] + line[right_brace_pos + 1:next_start_pos] + \
-                                           line[next_start_pos + right_brace_pos - start_pos + 1:]
-                                else:
-                                    line = line[0:start_pos] + line[next_start_pos + right_brace_pos - start_pos + 1:]
-                        start_pos = line.find("#{")
-                    elif line[start_pos + 2:start_pos + 13] == "copy:start}":
-                        next_start_pos = line.find("#{copy:end}", start_pos + 14)
-                        if next_start_pos > start_pos:
-                            # 一行中的变量标识符列表
-                            identifier_list = []
-                            # 一行中的正常文字列表
-                            middle_text = []
-                            content = line[start_pos + 13:next_start_pos]
-                            content_start_pos = content.find("#{")
-                            # 找到所有的变量标识符和正常文字
-                            while content_start_pos > 0:
-                                content_right_brace_pos = content.find("}", content_start_pos + 3)
-                                if content_right_brace_pos > content_start_pos:
-                                    content_identifier = content[content_start_pos + 2:content_right_brace_pos]
-                                    identifier_list.append(content_identifier)
-                                    middle_text.append(content[0:content_start_pos])
-                                    content = content[content_right_brace_pos + 1:next_start_pos]
-                                    content_start_pos = content.find("#{")
+            template_content = f.read()
 
-                            middle_text.append(content)
+        char_count = len(template_content)
+        # print('char_count=' + str(char_count))
 
-                            identifier_count = len(identifier_list)
-                            if identifier_count > 0:
-                                line = ''
-                                length = self.__fill_list(identifier_list)
-                                for i in range(length):
-                                    for j in range(identifier_count):
-                                        line += middle_text[j] + self.__identifier_dict[identifier_list[j]][i]
-                                    line += middle_text[identifier_count] + self.linefeed
+        # 跳过次数
+        skip_count = 0
 
-                        start_pos = line.find("#{")
+        bool_flags = {}
+        # struct
+        # {
+        #     "var1": {
+        #         "start_index": 12,
+        #         "content": "",
+        #     },
+        #     "var2": {
+        #         "start_index": 11,
+        #         "content": "test",
+        #     }
+        # }
+
+        # bool 指令变量 栈
+        bool_flags_stack = []
+
+        for i in range(char_count):
+            if skip_count > 0:
+                skip_count -= 1
+                continue
+            if i < char_count - 2 and template_content[i] == '#' and template_content[i + 1] == '{':
+                right_bracket_index = self.__get_next_right_bracket(template_content[i + 2:])
+                print('right_bracket_index=' + str(right_bracket_index))
+                if right_bracket_index == -1:
+                    # 没有 }
+                    if len(bool_flags_stack) == 0:
+                        # 没有 bool 指令要处理
+                        document += '#{'
                     else:
-                        end_pos = line.find("}", start_pos + 1)
-                        if end_pos > start_pos:
-                            line = line[0:start_pos] + self.__identifier_dict[line[start_pos + 2:end_pos]] + \
-                                   line[end_pos + 1:]
-                        start_pos = line.find("#{")
-                document += line
+                        # 还有 bool 指令要处理
+                        last_bool_var = bool_flags_stack[len(bool_flags_stack) - 1]
+                        bool_flags[last_bool_var]['content'] += '#{'
+
+                    skip_count = 1
+                    continue
+                else:
+                    # #{temp_var}
+                    temp_var = template_content[i + 2:i + 2 + right_bracket_index]
+                    print('temp_var=' + temp_var)
+                    colon_index = temp_var.find(':')
+                    if colon_index == -1:
+                        # 普通变量
+                        value = self.__identifier_dict.get(temp_var, '')
+                        print('value=' + value)
+                        if len(bool_flags_stack) == 0:
+                            # 没有 bool 指令要处理
+                            document += value
+                        else:
+                            # 还有 bool 指令要处理
+                            last_bool_var = bool_flags_stack[len(bool_flags_stack) - 1]
+                            bool_flags[last_bool_var]['content'] += value
+
+                        skip_count = 2 + right_bracket_index
+                        continue
+                    else:
+                        if temp_var[0:colon_index] == 'bool':
+                            # bool 指令变量
+                            var = temp_var[colon_index + 1:]
+                            if var == '':
+                                # 变量为空，当做普通字符串，原样输出
+                                if len(bool_flags_stack) == 0:
+                                    # 没有 bool 指令要处理
+                                    document += '#{bool:}'
+                                else:
+                                    # 还有 bool 指令要处理
+                                    last_bool_var = bool_flags_stack[len(bool_flags_stack) - 1]
+                                    bool_flags[last_bool_var]['content'] += '#{bool:}'
+
+                                skip_count = 7
+                                continue
+                            else:
+                                if var in bool_flags:
+                                    content = bool_flags[var]['content']
+                                    del bool_flags[var]
+                                    pop_var = bool_flags_stack.pop()
+                                    if pop_var != var:
+                                        raise TemplateError('bool directive usage error')
+                                    if self.__identifier_dict.get(var, False):
+                                        # bool 内容显示
+                                        if len(bool_flags_stack) != 0:
+                                            # 还有 bool 指令未处理完毕
+                                            last_var = bool_flags_stack[len(bool_flags_stack) - 1]
+                                            bool_flags[last_var]['content'] += content
+                                        else:
+                                            # 所有 bool 指令处理完毕
+                                            document += content
+                                    else:
+                                        # bool 内容不显示
+                                        # nothing to do
+                                        pass
+                                else:
+                                    bool_flags[var] = {
+                                        "start_index": i,
+                                        "content": ""
+                                    }
+                                    bool_flags_stack.append(var)
+                                # 当前 bool 指令解析完毕
+                                skip_count = 2 + right_bracket_index
+                                continue
+                        elif temp_var[0:colon_index] == 'copy':
+                            # copy 标记
+                            flag = temp_var[colon_index + 1:]
+                            if flag != 'start':
+                                if len(bool_flags_stack) == 0:
+                                    # 没有 bool 指令要处理
+                                    document += '#{' + temp_var
+                                else:
+                                    # 还有 bool 指令要处理
+                                    last_bool_var = bool_flags_stack[len(bool_flags_stack) - 1]
+                                    bool_flags[last_bool_var]['content'] += '#{' + temp_var
+
+                                # 非法的 copy 指令，原样输出，跳过处理
+                                skip_count = 2 + right_bracket_index
+                                continue
+                            else:
+                                copy_end_index = self.__find_copy_end_index(
+                                    template_content[i + 2 + right_bracket_index:])
+                                if copy_end_index == -1:
+                                    raise TemplateError('missing #{copy:end} .')
+                                else:
+                                    copy_content = template_content[
+                                                   i + 3 + right_bracket_index:i + 2 + right_bracket_index + copy_end_index]
+                                    value = self.__deal_copy(copy_content)
+                                    if len(bool_flags_stack) == 0:
+                                        # 没有 bool 指令要处理
+                                        document += value
+                                    else:
+                                        # 还有 bool 指令要处理
+                                        last_bool_var = bool_flags_stack[len(bool_flags_stack) - 1]
+                                        bool_flags[last_bool_var]['content'] += value
+                                    # copy 指令处理完毕（处理了一对 copy 指令）
+                                    skip_count = 2 + right_bracket_index + copy_end_index + 11
+                                    continue
+
+                        else:
+                            # 不支持的标记，原样输出
+                            if len(bool_flags_stack) == 0:
+                                # 没有 bool 指令要处理
+                                document += '#{' + temp_var + '}'
+                            else:
+                                # 还有 bool 指令要处理
+                                last_bool_var = bool_flags_stack[len(bool_flags_stack) - 1]
+                                bool_flags[last_bool_var]['content'] += '#{' + temp_var + '}'
+
+                            skip_count = 2 + right_bracket_index
+                            continue
+
+            else:
+                if len(bool_flags_stack) == 0:
+                    # 没有 bool 指令要处理
+                    document += template_content[i]
+                else:
+                    # 还有 bool 指令要处理
+                    last_bool_var = bool_flags_stack[len(bool_flags_stack) - 1]
+                    bool_flags[last_bool_var]['content'] += template_content[i]
+
+        if len(bool_flags_stack) > 0:
+            raise TemplateError('bool directive usage error')
+
         return document
 
     def save_document(self, new_file):
@@ -112,3 +216,73 @@ class DocumentTemplate(object):
         document = self.get_document()
         with codecs.open(new_file, 'w', encoding=self.__encoding) as f:
             f.write(document)
+
+    @staticmethod
+    def __get_next_right_bracket(text):
+        """获取 } 的位置"""
+        index = -1
+        for char in text:
+            if '0' <= char <= '9' or 'a' <= char <= 'z' or 'A' <= char <= 'Z' or char == '_' or char == ':':
+                index += 1
+            elif char == '}':
+                index += 1
+                break
+            else:
+                index = -1
+                break
+
+        return index
+
+    @staticmethod
+    def __find_copy_end_index(text):
+        return text.find('#{copy:end}')
+
+    def __deal_copy(self, content):
+        print('deal_content=' + content)
+        final_content = ''
+        loop_count = 1
+        temp_content = content
+        while temp_content != '':
+            start_flag_index = temp_content.find('#{')
+            if start_flag_index == -1:
+                final_content += temp_content
+                temp_content = ''
+
+            final_content += temp_content[0:start_flag_index]
+            end_flag_index = temp_content.find('}', start_flag_index + 2)
+            if end_flag_index == -1:
+                # 没有 } ，把 #{... 当做普通字符串处理，原样输出
+                final_content += temp_content[start_flag_index:]
+                temp_content = ''
+            else:
+                var = temp_content[start_flag_index + 2:end_flag_index]
+                collection = self.__identifier_dict.get(var, [''])
+                if len(collection) > loop_count:
+                    loop_count = len(collection)
+                final_content += collection[0]
+                temp_content = temp_content[end_flag_index + 1:]
+
+        print('loop_count=' + str(loop_count))
+
+        for i in range(1, loop_count):
+            temp_content = content
+            while temp_content != '':
+                start_flag_index = temp_content.find('#{')
+                if start_flag_index == -1:
+                    final_content += temp_content
+                    temp_content = ''
+
+                final_content += temp_content[0:start_flag_index]
+                end_flag_index = temp_content.find('}', start_flag_index + 2)
+                if end_flag_index == -1:
+                    # 没有 } ，把 #{... 当做普通字符串处理，原样输出
+                    final_content += temp_content[start_flag_index:]
+                    temp_content = ''
+                else:
+                    var = temp_content[start_flag_index + 2:end_flag_index]
+                    collection = self.__identifier_dict.get(var, [''])
+                    if len(collection) > i:
+                        final_content += collection[i]
+                    temp_content = temp_content[end_flag_index + 1:]
+
+        return final_content

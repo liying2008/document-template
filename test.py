@@ -1,9 +1,15 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+import sys
+
 from document_template import DocumentTemplate
 
 __author__ = 'liying'
+
+if sys.version_info < (3, 0):
+    reload(sys)
+    sys.setdefaultencoding('utf-8')
 
 if __name__ == '__main__':
     id_dict = {"title": "标题", "head": "正文标题", "url": "https://github.com/liying2008", "large_font": "大号字体"}
@@ -17,5 +23,4 @@ if __name__ == '__main__':
     temp = DocumentTemplate()
     temp.load("test.html", encoding='utf-8')
     temp.set_identifier_dict(id_dict)
-    temp.linefeed = '<br>\n'
     temp.save_document("new_test.html")
