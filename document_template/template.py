@@ -175,23 +175,21 @@ class DocumentTemplate(object):
                         elif temp_var[0:colon_index] == 'copy':
                             # copy 标记
                             flag = temp_var[colon_index + 1:]
-                            if flag != 'start':
-                                if len(bool_flags_stack) == 0:
-                                    # 没有 bool 指令要处理
-                                    document += '#{' + temp_var
-                                else:
-                                    # 还有 bool 指令要处理
-                                    last_bool_var = bool_flags_stack[len(bool_flags_stack) - 1]
-                                    bool_flags[last_bool_var]['content'] += '#{' + temp_var
-
-                                # 非法的 copy 指令，原样输出，跳过处理
-                                skip_count = 2 + right_bracket_index
-                                continue
+                            if flag == '':
+                                raise TemplateError(code=30,
+                                                    message='copy directive flag cannot be empty, it should be "start" or "end".')
+                            elif flag == 'end':
+                                raise TemplateError(code=31,
+                                                    message='copy directive flag should appear first as "start" and then as "end".')
+                            elif flag != 'start':
+                                raise TemplateError(code=32,
+                                                    message='copy directive flag can only be "start" or "end".')
                             else:
+                                # flag is start
                                 copy_end_index = self.__find_copy_end_index(
                                     template_content[i + 2 + right_bracket_index:])
                                 if copy_end_index == -1:
-                                    raise TemplateError(code=30, message='missing #{copy:end} .')
+                                    raise TemplateError(code=33, message='missing #{copy:end} .')
                                 else:
                                     copy_content = template_content[
                                                    i + 3 + right_bracket_index:i + 2 + right_bracket_index + copy_end_index]
@@ -204,7 +202,8 @@ class DocumentTemplate(object):
                                         last_bool_var = bool_flags_stack[len(bool_flags_stack) - 1]
                                         bool_flags[last_bool_var]['content'] += value
                                     # copy 指令处理完毕（处理了一对 copy 指令）
-                                    skip_count = 2 + right_bracket_index + copy_end_index + 11
+                                    # +10 是用来跳过 #{copy:end} 这些字符
+                                    skip_count = 2 + right_bracket_index + copy_end_index + 10
                                     continue
 
                         else:
