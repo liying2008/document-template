@@ -49,7 +49,8 @@ Python解析文档模版
     <hr>
     <span style="font-size: larger;font-weight: bold">#{large_font}</span>
     <br>
-    为真时显示:#{bool:show_span}<span>显示的内容</span>#{bool:show_span};;分割;;#{bool:show_span}show_span is True#{bool:show_span}
+    为真时显示:#{bool:show_span}<span>显示的内容</span>#{bool:show_span}
+    ;;分割;;#{bool:show_span}show_span is True#{bool:show_span}
     <br>
     #{copy:start}多行文字，替换局部内容：#{contents} 和 #{another_contents}<br>
     #{copy:end}
@@ -87,9 +88,9 @@ Python解析文档模版
 
 指令说明
 ---------
-- 普通变量：#{var} 定义模板变量；
-- bool指令：#{bool:var}text1#{bool:var} 通过变量 var 控制 text1 是否显示
-- copy指令：#{copy:start}text1#{collection_var}#{copy:end} 循环遍历 collection_var ，将其值填充到内容中
+- **普通变量**：#{var} 定义普通模板变量；
+- **bool指令**：#{bool:var}text1#{bool:var} 通过变量 var 控制 text1 是否显示；
+- **copy指令**：#{copy:start}text1#{collection_var}#{copy:end} 循环遍历 collection_var ，将其值填充到内容中。
 
 
 注意事项

@@ -1,20 +1,27 @@
 # -*- coding: utf-8 -*-
 import codecs
+import os
+import sys
 
 from setuptools import find_packages
 from setuptools import setup
 
-author = 'liying'
-email = 'liruoer2008@yeah.net'
-version = '1.0.0'
+import document_template
+
 url = 'https://github.com/liying2008/document-template'
+
+# 'setup.py publish' shortcut.
+if sys.argv[-1] == 'publish':
+    os.system('python setup.py sdist bdist_wheel')
+    os.system('twine upload dist/*')
+    sys.exit()
 
 with codecs.open("README.rst", "r", "utf-8") as fh:
     long_description = fh.read()
 
 setup(
     name='document-template',
-    version=version,
+    version=document_template.__version__,
     description="Generate documents from templates.",
     long_description=long_description,
     classifiers=[
@@ -27,16 +34,20 @@ setup(
         "Programming Language :: Python :: 3",
         "Topic :: Utilities",
     ],
+    project_urls={
+        'Documentation': url,
+        'Source': url,
+    },
     keywords='template document parser',
-    author=author,
-    author_email=email,
+    author=document_template.__author__,
+    author_email=document_template.__email__,
+    maintainer=document_template.__author__,
+    maintainer_email=document_template.__email__,
     url=url,
-    license='MIT',
+    license=document_template.__license__,
     packages=find_packages(),
     include_package_data=True,
     zip_safe=False,
-    install_requires=[
-        'setuptools',
-    ],
+    install_requires=[],
     entry_points={},
 )

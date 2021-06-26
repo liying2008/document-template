@@ -4,5 +4,5 @@ new_test.html
 *.pyc
 build/
 document_template.egg-info/
-dist/*.egg
+dist/
 venv*
