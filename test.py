@@ -20,7 +20,7 @@ if __name__ == '__main__':
     # id_dict['another_contents'] = '1234567'
     id_dict['contents'] = ('A', 'B', 'C', 'D', 'E', 'F', 'G')
     id_dict['another_contents'] = ['1', '2', '3', '4', '5', '6', '7']
-    temp = DocumentTemplate()
-    temp.load("test.html", encoding='utf-8')
-    temp.set_identifier_dict(id_dict)
-    temp.save_document("new_test.html")
+    dt = DocumentTemplate()
+    dt.load("test.html", encoding='utf-8')
+    dt.set_identifier_dict(id_dict)
+    dt.save_document("new_test.html")

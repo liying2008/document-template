@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
 import codecs
 
@@ -7,7 +6,7 @@ from setuptools import setup
 
 author = 'liying'
 email = 'liruoer2008@yeah.net'
-version = '0.0.6'
+version = '1.0.0'
 url = 'https://github.com/liying2008/document-template'
 
 with codecs.open("README.rst", "r", "utf-8") as fh:
@@ -16,7 +15,7 @@ with codecs.open("README.rst", "r", "utf-8") as fh:
 setup(
     name='document-template',
     version=version,
-    description="Generate documents according to the template.",
+    description="Generate documents from templates.",
     long_description=long_description,
     classifiers=[
         "Environment :: Console",
@@ -28,7 +27,7 @@ setup(
         "Programming Language :: Python :: 3",
         "Topic :: Utilities",
     ],
-    keywords='template document',
+    keywords='template document parser',
     author=author,
     author_email=email,
     url=url,

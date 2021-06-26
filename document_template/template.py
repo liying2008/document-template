@@ -103,7 +103,7 @@ class DocumentTemplate(object):
                 continue
             if i < char_count - 2 and template_content[i] == '#' and template_content[i + 1] == '{':
                 right_bracket_index = self.__get_next_right_bracket(template_content[i + 2:])
-                print('right_bracket_index=' + str(right_bracket_index))
+                # print('right_bracket_index=' + str(right_bracket_index))
                 if right_bracket_index == -1:
                     # 没有 }
                     if len(bool_flags_stack) == 0:
@@ -119,12 +119,12 @@ class DocumentTemplate(object):
                 else:
                     # #{temp_var}
                     temp_var = template_content[i + 2:i + 2 + right_bracket_index]
-                    print('temp_var=' + temp_var)
+                    # print('temp_var=' + temp_var)
                     colon_index = temp_var.find(':')
                     if colon_index == -1:
                         # 普通变量
                         value = self.__identifier_dict.get(temp_var, '')
-                        print('value=' + value)
+                        # print('value=' + value)
                         if len(bool_flags_stack) == 0:
                             # 没有 bool 指令要处理
                             document += value
@@ -279,7 +279,7 @@ class DocumentTemplate(object):
 
     def __deal_copy(self, content):
         """处理 copy 指令"""
-        print('deal_content=' + content)
+        # print('deal_content=' + content)
         final_content = ''
         loop_count = 1
         temp_content = content
@@ -303,7 +303,7 @@ class DocumentTemplate(object):
                 final_content += collection[0]
                 temp_content = temp_content[end_flag_index + 1:]
 
-        print('loop_count=' + str(loop_count))
+        # print('loop_count=' + str(loop_count))
 
         for i in range(1, loop_count):
             temp_content = content
