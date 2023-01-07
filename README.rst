@@ -45,14 +45,16 @@ Python解析文档模版
     <h1>#{head}</h1>
     <a href="#{url}">#{url}</a>
     <br>
-    Test.......
+    <h1>网站标题</h1>
     <hr>
     <span style="font-size: larger;font-weight: bold">#{large_font}</span>
     <br>
-    为真时显示:#{bool:show_span}<span>显示的内容</span>#{bool:show_span}
-    ;;分割;;#{bool:show_span}show_span is True#{bool:show_span}
+    show_span 为真时显示:
+    #{bool:show_span}<span>show_span is True</span>#{bool:show_span}
+    show_span 为假时显示:
+    #{bool:!show_span}<span>show_span is False</span>#{bool:!show_span}
     <br>
-    #{copy:start}多行文字，替换局部内容：#{contents} 和 #{another_contents}<br>
+    #{copy:start}渲染多行文本，并替换局部内容：#{contents} 和 #{another_contents}<br>
     #{copy:end}
     </body>
     </html>
@@ -89,22 +91,13 @@ Python解析文档模版
 指令说明
 ---------
 - **普通变量**：#{var} 定义普通模板变量；
-- **bool指令**：#{bool:var}text1#{bool:var} 通过变量 var 控制 text1 是否显示；
-- **copy指令**：#{copy:start}text1#{collection_var}#{copy:end} 循环遍历 collection_var ，将其值填充到内容中。
+- **bool指令**：#{bool:var}text#{bool:var} 通过变量 var 是否为 True 控制 text 是否显示，或者 #{bool:!var}text#{bool:!var} 通过变量 var 是否为 False 控制 text 是否显示；
+- **copy指令**：#{copy:start}text#{collection_var}#{copy:end} 循环遍历 collection_var ，将其值填充到内容中。
 
 
 注意事项
 ---------
 - 不支持 **copy 指令** 内使用 **copy 指令** 或 **bool 指令** 。
-
-
-更新内容
----------
-- copy 指令不再默认换行，取消 linefeed 设置；
-- 取消成对出现的 **bool 指令** 须在同一行的限制；
-- 取消成对出现的 **copy 指令** 须在同一行的限制；
-- 支持 **bool 指令** 内使用 **copy 指令** ；
-- 添加了自定义异常。
 
 
 LICENSE

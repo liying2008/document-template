@@ -22,7 +22,7 @@ class BoolCopyTestCase(unittest.TestCase):
         
         '''
         actual_content = self.dt.parse(template_content, id_dict)
-        self.assertEqual(expect_content, actual_content)
+        self.assertEqual(expect_content, actual_content, "test_bool_copy_01#1")
 
         # 2
         id_dict = {
@@ -30,7 +30,29 @@ class BoolCopyTestCase(unittest.TestCase):
         }
         expect_content = ''''''
         actual_content = self.dt.parse(template_content, id_dict)
-        self.assertEqual(expect_content, actual_content)
+        self.assertEqual(expect_content, actual_content, "test_bool_copy_01#2")
+
+        template_content = '''#{bool:!var1}#{copy:start}111
+        #{copy:end}
+        #{bool:!var1}'''
+
+        # 3
+        id_dict = {
+            'var1': True,
+        }
+        expect_content = ''''''
+        actual_content = self.dt.parse(template_content, id_dict)
+        self.assertEqual(expect_content, actual_content, "test_bool_copy_01#3")
+
+        # 4
+        id_dict = {
+            'var1': False,
+        }
+        expect_content = '''111
+        
+        '''
+        actual_content = self.dt.parse(template_content, id_dict)
+        self.assertEqual(expect_content, actual_content, "test_bool_copy_01#4")
 
     def test_bool_copy_02(self):
         template_content = '''111#{bool:var1}222#{bool:var2}
@@ -50,7 +72,7 @@ class BoolCopyTestCase(unittest.TestCase):
         
         '''
         actual_content = self.dt.parse(template_content, id_dict)
-        self.assertEqual(expect_content, actual_content)
+        self.assertEqual(expect_content, actual_content, "test_bool_copy_02#1")
 
         # 2
         id_dict = {
@@ -64,7 +86,7 @@ class BoolCopyTestCase(unittest.TestCase):
         
         '''
         actual_content = self.dt.parse(template_content, id_dict)
-        self.assertEqual(expect_content, actual_content)
+        self.assertEqual(expect_content, actual_content, "test_bool_copy_02#2")
 
         # 3
         id_dict = {
@@ -75,7 +97,7 @@ class BoolCopyTestCase(unittest.TestCase):
         }
         expect_content = '''111222'''
         actual_content = self.dt.parse(template_content, id_dict)
-        self.assertEqual(expect_content, actual_content)
+        self.assertEqual(expect_content, actual_content, "test_bool_copy_02#3")
 
         # 4
         id_dict = {
@@ -86,7 +108,7 @@ class BoolCopyTestCase(unittest.TestCase):
         }
         expect_content = '''111'''
         actual_content = self.dt.parse(template_content, id_dict)
-        self.assertEqual(expect_content, actual_content)
+        self.assertEqual(expect_content, actual_content, "test_bool_copy_02#4")
 
         # 5
         id_dict = {
@@ -97,7 +119,7 @@ class BoolCopyTestCase(unittest.TestCase):
         }
         expect_content = '''111'''
         actual_content = self.dt.parse(template_content, id_dict)
-        self.assertEqual(expect_content, actual_content)
+        self.assertEqual(expect_content, actual_content, "test_bool_copy_02#5")
 
 
 if __name__ == '__main__':

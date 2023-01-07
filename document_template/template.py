@@ -86,10 +86,12 @@ class DocumentTemplate(object):
         # {
         #     "var1": {
         #         "start_index": 12,
+        #         "negation": False,
         #         "content": "",
         #     },
         #     "var2": {
         #         "start_index": 11,
+        #         "negation": True,
         #         "content": "test",
         #     }
         # }
@@ -143,14 +145,23 @@ class DocumentTemplate(object):
                                 # bool 变量为空，抛出异常
                                 raise TemplateError(code=20, message='bool variable is empty.')
                             else:
+                                negation = False
+                                if var[0] == '!':
+                                    negation = True
+                                    var = var[1:]
                                 if var in bool_flags:
+                                    origin_negation = bool_flags[var]['negation']
                                     content = bool_flags[var]['content']
                                     del bool_flags[var]
                                     pop_var = bool_flags_stack.pop()
                                     if pop_var != var:
                                         # bool 指令嵌套错误
                                         raise TemplateError(code=21, message='bool directive nesting error.')
-                                    if self.__identifier_dict.get(var, False):
+                                    if negation != origin_negation:
+                                        # bool 指令取反状态前后不一致
+                                        raise TemplateError(code=23,
+                                                            message='bool directive negations do not match before and after.')
+                                    if self.__identifier_dict.get(var, False) != origin_negation:
                                         # bool 内容显示
                                         if len(bool_flags_stack) != 0:
                                             # 还有 bool 指令未处理完毕
@@ -165,9 +176,11 @@ class DocumentTemplate(object):
                                         pass
                                 else:
                                     bool_flags[var] = {
-                                        "start_index": i,
-                                        "content": ""
+                                        'start_index': i,
+                                        'negation': negation,
+                                        'content': ""
                                     }
+                                    # print('var', var, 'bool_flags', bool_flags)
                                     bool_flags_stack.append(var)
                                 # 当前 bool 指令解析完毕
                                 skip_count = 2 + right_bracket_index
@@ -262,7 +275,7 @@ class DocumentTemplate(object):
         """获取 } 的位置"""
         index = -1
         for char in text:
-            if '0' <= char <= '9' or 'a' <= char <= 'z' or 'A' <= char <= 'Z' or char == '_' or char == ':':
+            if '0' <= char <= '9' or 'a' <= char <= 'z' or 'A' <= char <= 'Z' or char == '_' or char == ':' or char == '!':
                 index += 1
             elif char == '}':
                 index += 1
