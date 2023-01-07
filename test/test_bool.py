@@ -200,6 +200,7 @@ class BoolTestCase(unittest.TestCase):
         self.assertEqual(template_exception.code, 21, "test_bool_06#1")
 
     def test_bool_07(self):
+        # 1
         template_content = '''#{bool:var1}#{bool:!var1}'''
         id_dict = {
             "var1": False
@@ -210,6 +211,7 @@ class BoolTestCase(unittest.TestCase):
         print(template_exception)
         self.assertEqual(template_exception.code, 23, "test_bool_07#1")
 
+        # 2
         template_content = '''#{bool:!var1}#{bool:var1}'''
         id_dict = {
             "var1": False
@@ -218,7 +220,7 @@ class BoolTestCase(unittest.TestCase):
             self.dt.parse(template_content, id_dict)
         template_exception = cm.exception
         print(template_exception)
-        self.assertEqual(template_exception.code, 23, "test_bool_07#1")
+        self.assertEqual(template_exception.code, 23, "test_bool_07#2")
 
 
 if __name__ == '__main__':
